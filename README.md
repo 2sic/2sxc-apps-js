@@ -14,3 +14,16 @@ Current 2sxc Version: 08.07
 
 ## How to Contribute
 To create another client-side library for another framework (like flux, aurelia, etc.) just fork this, create a new folder and start developing. To test it inside DNN you'll have to load your JS from your app template with a standard `<script...>` tag, when you believe that you're ready, send us a pull request :) 
+
+## ToDos on Existing Parts
+
+1. $2sxc
+  1. extract the parts which are not really for the client library - like the upgrade message
+2. 2sxc4ng
+  1. add toolbar functionality
+
+
+## Desired new parts
+
+1. Angular 2
+2. React
