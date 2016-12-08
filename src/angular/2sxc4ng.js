@@ -181,17 +181,23 @@ angular.module("2sxc4ng", ["ng"])
     })
 
     /// simple helper service which will call a query
-    .factory("query", function ($http) {
-        return function (name) {
-            var qry = {};
-            qry.root = "app-query/" + name;
+    .factory("query", function ($http, sxc) {
+            var createQueryObj = function(name) {
+                var qry = {
+                    root: "app-query/" + name
+                };
 
-            qry.get = function (config) {
-                return $http.get(qry.root, config);
+                qry.get = function(config) {
+                    return !name
+                        ? $http(angular.extend({ url: sxc.data.sourceUrl() }, config)) // otherwise use the current-view stuff
+                        : $http.get(qry.root, config); // if it has a name, call that specific query
+                };
+
+                return qry;
             };
-            return qry;
-        };
-    })
+
+            return createQueryObj;
+        })
 
 
     // BETA - not final. SXC-Toolbar, not ready for production use
@@ -200,16 +206,16 @@ angular.module("2sxc4ng", ["ng"])
         return {
             restrict: "E",
             scope: {
-                // syntax 1 uses either an entity/id and optional action-names / content-type names
-                entity: "&for",
-                entityId: "&forId",
-                actions: "&custom",
-                contentType: "&forContentType", // todo!
-
-                // syntax 2 uses the toolbar configuration and the settings as standardized in 2sxc 8.6
+                // official syntax uses the toolbar configuration and the settings as standardized in 2sxc 8.6
+                // read about it in https://github.com/2sic/2sxc/wiki/AngularJs-1-Overview
                 toolbar: "&toolbar",
                 settings: "&settings"
 
+                // old beta syntax used an entity/id and optional action-names / content-type names
+                //entity: "&for",
+                //entityId: "&forId",
+                //actions: "&custom",
+                //contentType: "&forContentType", // todo! 
             },
             link: function (scope, element, attrs) {
                 var manageCtrl = sxc.manage;
@@ -223,19 +229,19 @@ angular.module("2sxc4ng", ["ng"])
                     if (tbObj !== undefined) {
                         var setObj = scope.settings();
                         toolbar = manageCtrl.getToolbar(tbObj, setObj);
-
-                    // still support old mode for now
-                    } else {
-                        // future: console.warn("sxcToolbar is used in an old mode which will be deprecated soon");
-                        if (scope.entity() !== undefined)
-                            toolbar = manageCtrl.getToolbar([{ "entity": scope.entity(), "action": "edit" }]);
-                        else if (scope.entityId() !== undefined)
-                            toolbar = manageCtrl.getToolbar([{ "entityId": scope.entityId(), "action": "edit" }]);
-                        else if (scope.actions() !== undefined)
-                            toolbar = manageCtrl.getToolbar(scope.actions());
-                        else if (scope.contentType() !== undefined)
-                            toolbar = manageCtrl.getToolbar([{ "action": "new", contentType: scope.contentType() }]);                        
                     }
+                    // old beta-mode, not supported any more!
+                    //else {
+                    //    // future: console.warn("sxcToolbar is used in an old mode which will be deprecated soon");
+                    //    if (scope.entity() !== undefined)
+                    //        toolbar = manageCtrl.getToolbar([{ "entity": scope.entity(), "action": "edit" }]);
+                    //    else if (scope.entityId() !== undefined)
+                    //        toolbar = manageCtrl.getToolbar([{ "entityId": scope.entityId(), "action": "edit" }]);
+                    //    else if (scope.actions() !== undefined)
+                    //        toolbar = manageCtrl.getToolbar(scope.actions());
+                    //    else if (scope.contentType() !== undefined)
+                    //        toolbar = manageCtrl.getToolbar([{ "action": "new", contentType: scope.contentType() }]);                        
+                    //}
 
                 }
 
