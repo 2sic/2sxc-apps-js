@@ -142,7 +142,7 @@ angular.module("2sxc4ng", ["ng"])
 
     // provide the global $2sxc object to angular modules as a clear, clean dependency
     .factory("$2sxc", function () {
-        if (!$2sxc) throw "the Angular service 'sxc' can't find the global $2sxc controller";
+        if (!$2sxc) throw "the Angular service '$2sxc' in module '2sxc4ng' can't find the global $2sxc controller";
         return $2sxc;
     })
 
@@ -195,30 +195,47 @@ angular.module("2sxc4ng", ["ng"])
 
 
     // BETA - not final. SXC-Toolbar, not ready for production use
-    .directive('sxcToolbar', function SxcToolbar(AppInstanceId) {
+    // todo: this is updated for 2sxc 8.7.1, in a near future version in should become stable
+    .directive("sxcToolbar", function(sxc) {
         return {
-            restrict: 'E',
+            restrict: "E",
             scope: {
-                entity: '&for',
-                entityId: '&forId',
-                actions: '&custom',
-                forContentType: '&forContentType'
+                // syntax 1 uses either an entity/id and optional action-names / content-type names
+                entity: "&for",
+                entityId: "&forId",
+                actions: "&custom",
+                contentType: "&forContentType", // todo!
+
+                // syntax 2 uses the toolbar configuration and the settings as standardized in 2sxc 8.6
+                toolbar: "&toolbar",
+                settings: "&settings"
+
             },
             link: function (scope, element, attrs) {
-                var manageCtrl = $2sxc(AppInstanceId).manage;
-                var toolbar = '';
+                var manageCtrl = sxc.manage;
+                var toolbar = "";
 
+                // the manage only exists when in edit mode
                 if(manageCtrl)
                 {
-                    
-                    if (scope.entity() !== undefined)
-                        toolbar = manageCtrl.getToolbar([{ "entity": scope.entity(), "action": "edit" }]);
-                    else if (scope.entityId() !== undefined)
-                        toolbar = manageCtrl.getToolbar([{ "entityId": scope.entityId(), "action": "edit" }]);
-                    else if (scope.actions() !== undefined)
-                        toolbar = manageCtrl.getToolbar(scope.actions());
-                    else if (scope.forContentType() !== undefined)
-                        toolbar = manageCtrl.getToolbar([{ "action": "new", contentType: scope.forContentType() }]);
+                    // run in new mode as defined in 2sxc 8.6
+                    var tbObj = scope.toolbar();
+                    if (tbObj !== undefined) {
+                        var setObj = scope.settings();
+                        toolbar = manageCtrl.getToolbar(tbObj, setObj);
+
+                    // still support old mode for now
+                    } else {
+                        // future: console.warn("sxcToolbar is used in an old mode which will be deprecated soon");
+                        if (scope.entity() !== undefined)
+                            toolbar = manageCtrl.getToolbar([{ "entity": scope.entity(), "action": "edit" }]);
+                        else if (scope.entityId() !== undefined)
+                            toolbar = manageCtrl.getToolbar([{ "entityId": scope.entityId(), "action": "edit" }]);
+                        else if (scope.actions() !== undefined)
+                            toolbar = manageCtrl.getToolbar(scope.actions());
+                        else if (scope.contentType() !== undefined)
+                            toolbar = manageCtrl.getToolbar([{ "action": "new", contentType: scope.contentType() }]);                        
+                    }
 
                 }
 
